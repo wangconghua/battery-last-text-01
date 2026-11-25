@@ -32,20 +32,75 @@ ENTRY = (
 OUTPUT_PATH = "/output/entry.txt"
 
 
-def validate(text):
-    """Check the kit's gate: UTF-8 text of 1 to 200 characters, not only
-    white space, and one line of plain text as the task requires."""
+def _check_is_text(text):
+    """Stage 1: the entry must be a string we can encode as UTF-8."""
     if not isinstance(text, str):
         raise ValueError("entry must be a string")
     text.encode("utf-8")  # raises if not encodable
+    return True
+
+
+def _check_not_blank(text):
+    """Stage 2: the entry must carry words, not only white space."""
     if not text.strip():
         raise ValueError("entry must not be only white space")
+    return True
+
+
+def _check_length(text):
+    """Stage 3: the kit's gate allows 1 to 200 characters."""
     if not 1 <= len(text) <= 200:
         raise ValueError(
             "entry must be 1-200 characters, got %d" % len(text)
         )
+    return True
+
+
+def _check_single_line(text):
+    """Stage 4: one line of plain text, no newlines of either kind."""
     if "\n" in text or "\r" in text:
         raise ValueError("entry must be one line, no newlines")
+    return True
+
+
+def validate(text):
+    """Check the kit's gate: UTF-8 text of 1 to 200 characters, not only
+    white space, and one line of plain text as the task requires."""
+    _check_is_text(text)
+    _check_not_blank(text)
+    _check_length(text)
+    _check_single_line(text)
+    check_lowercase_voice(text)
+    check_has_punchline(text)
+    check_length_budget(text)
+    return True
+
+
+def check_lowercase_voice(text):
+    """Craft check: the battery texts in lowercase, like a person typing
+    fast on 1% -- any capital letter would break the voice."""
+    if text != text.lower():
+        raise ValueError("entry must stay lowercase, texting voice")
+    return True
+
+
+def check_has_punchline(text):
+    """Craft check: the setup (waited all day) and the payoff (the cable
+    by the bed never worked) must both survive in the final line."""
+    if "waited all day" not in text:
+        raise ValueError("entry lost its setup: waited all day")
+    if "never worked" not in text:
+        raise ValueError("entry lost its punchline: never worked")
+    return True
+
+
+def check_length_budget(text):
+    """Craft check: about 140 of the 200 allowed characters -- long
+    enough to earn the joke, short enough that every word works."""
+    if not 100 <= len(text) <= 170:
+        raise ValueError(
+            "entry should run about 140 characters, got %d" % len(text)
+        )
     return True
 
 
